@@ -1,0 +1,41 @@
+{
+  "name": "@ralphwetzel/node-red-systeminformation",
+  "version": "0.0.1",
+  "description": "Node-RED interface to systeminformation, the System Information Library for Node.JS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ralphwetzel/node-red-systeminformation.git"
+  },
+  "keywords": [
+    "Node-RED",
+    "node-red",
+    "systeminformation",
+    "node.js",
+    "node"
+  ],
+  "author": "Ralph Wetzel",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ralphwetzel/node-red-systeminformation/issues"
+  },
+  "homepage": "https://github.com/ralphwetzel/node-red-systeminformation#readme",
+  "node-red": {
+    "version": ">=3",
+    "nodes": {
+      "systeminformation": "index.js"
+    }
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "dependencies": {
+    "systeminformation": "^5.21.7, <6.0.0"
+  },
+  "devDependencies" : {
+    "osx-temperature-sensor": "^1.0.8"
+  }
+}

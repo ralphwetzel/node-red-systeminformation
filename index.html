@@ -1,0 +1,241 @@
+<script type="text/html" data-template-name="systeminformation">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-function"><i class="fa fa-cog"></i> Function</label>
+        <input type="text" id="node-input-function" placeholder="Function">
+    </div>
+
+    <div class="form-row" id="si_param_1">
+        <label for="node-input-param1"><i class="fa fa-sign-in"></i> Test</label>
+        <input type="text" id="node-input-param1" placeholder="">
+    </div>
+
+    <div class="form-row" id="si_param_2">
+        <label for="node-input-param2"><i class="fa fa-sign-in"></i> valueOptions</label>
+        <input type="text" id="node-input-param2" placeholder="">
+    </div>
+
+    <div class="form-row" id="poll-row">
+        <label for="node-input-poll"> </label>
+        <label for="node-input-poll" style="width:70%; margin-bottom: 0px">
+        <input type="checkbox" id="node-input-poll" style="display:inline-block; width:22px; vertical-align:top; margin-top: 6px" autocomplete="off">
+            <span>Observe function every </span>
+            <input type="text" id="node-input-interval" placeholder="5" style="width:45px; height:28px;" autocomplete="off" dir="" disabled="disabled">
+            <span> seconds.</span>
+        </label>
+    </div>
+
+    <div class="form-row" id="onchangeonly-row">
+        <label for="node-input-onchangeonly"> </label>
+        <label for="node-input-onchangeonly" style="width:70%">
+        <input type="checkbox" id="node-input-onchangeonly" style="display:inline-block; width:22px; vertical-align:top; margin-top: 3px" autocomplete="off">
+            <span disabled="disabled">Send message only if values changed.</span>
+        </label>
+    </div>
+
+    <div class="form-tips" style="max-width: unset">
+        <span>Refer to <a href='https://systeminformation.io/#docs' target="_blank" rel="noopener noreferrer">systeminformation.io</a> for documentation of the selectable functions.</span>
+    </div>
+</script>
+
+<script type="text/javascript">
+
+    let _root = "@ralphwetzel/systeminformation";
+    $.get({
+        url: `/${_root}/api`,
+        contentType: "application/json",
+    }).fail((error) => {
+        console.error(`${_root}: Runtime module not responding. Setup canceled.`);
+    }).done((_api) => {
+        const API = _api;
+        RED.nodes.registerType("systeminformation",{
+            category: 'function',
+            color: '#C0DEED',
+            icon: "logo.png",
+            defaults: {
+                name: {value:""},
+                group: {value: "General"},
+                func: {value: "version"},
+                params: {value: {}},
+                poll: {value: false},
+                interval: {value: 2, validate: function(v) {
+                    if (isNaN(v)) return false;
+                    return v<0 ? false : true;
+                }},
+                onchangeonly: {value: false}
+            },
+            inputs: 1,
+            outputs: 1,
+            label: function() {
+                return this.name|| this.func ||"systeminformation";
+            },
+            paletteLabel: "systeminfo",
+            oneditprepare: function() {
+
+                let node = this;
+                let types = [];
+
+                Object.keys(API).forEach( (key) => {
+
+                    let g = API[key];
+                    let t = {};
+                    t.value = key;
+                    t.label = g.label ? g.label : key;
+                    t.label += " ";
+                    t.options = [];
+
+                    Object.keys(g).forEach((k) => {
+                        if ("label" !== k) {
+                            let tt = {};
+                            tt.value = k;
+                            t.options.push(tt);
+                        }
+                    })
+
+                    types.push(t);
+                })
+
+                let cache = {};
+
+                let ni_function = $("#node-input-function").typedInput({
+                    type: "function",
+                    types: types
+                }).on("change", function(event, type, value) {
+                    console.log(type, value);
+
+                    let f = API?.[type]?.[value];
+                    console.log(f);
+                    if (!f) {
+                        node.error(`${_root}: API error; '${value}' is not a valid function of section '${type}'.`)
+                        return;
+                    }
+
+                    $("#poll-row").toggle(!(f.dont_poll ?? false));
+                    $("#onchangeonly-row").toggle(!(f.dont_poll ?? false));
+
+                    let i = 0;
+                    Object.keys(f.params ?? []).forEach( (p) => {
+                        let row = $(`#si_param_${i+1}`);
+                        row.toggle(true);
+                        row.find("label").html(`<i class="fa fa-sign-in"></i> ${p}`);
+
+                        console.log(p);
+                        let el = $(`#node-input-param${i+1}`);
+
+                        el.typedInput("types", [f.params[p].type]);
+                        el.typedInput("type", f.params[p].type);
+                        el.typedInput("value", f.params[p].default);
+
+                        i += 1;
+                    })
+
+                    while (i < 2) {
+                        $(`#si_param_${i+1}`).toggle(false);
+                        i += 1;
+                    }
+
+                })
+
+                ni_function.next().find(".red-ui-typedInput-type-label").css("margin-right", "4px");
+                ni_function.next().find(".red-ui-typedInput-option-label").css("background", "white");
+
+                $(`#node-input-param1`).typedInput({type: "str", types: ["str"]});
+                $(`#node-input-param2`).typedInput({type: "str", types: ["str"]});
+
+                $(`#node-input-poll`).change( function() {
+                    $(`#node-input-interval`).prop('disabled', !this.checked);
+                    $(`#node-input-onchangeonly`).prop('disabled', !this.checked);
+                })
+
+                // Init sequence
+                ni_function.typedInput("type", this.group);
+                ni_function.typedInput("value", this.func);
+
+                if (API[this.group]?.[this.func]?.params) {
+                    Object.keys(API[this.group][this.func].params ?? []).forEach( (p, i) => {
+                        $(`#node-input-param${i+1}`).typedInput("value", this.params[p]);
+                    });
+                }
+
+            },
+            oneditsave: function() {
+                let ni_function = $("#node-input-function");
+                let g = ni_function.typedInput("type");
+                let f = ni_function.typedInput("value");
+                let params = {};
+
+                console.log(API[g]?.[f]);
+
+                let _api = API[g]?.[f];
+
+                if (!_api) {
+                    console.log("No _api?")
+                    // give an error here?
+                    return;
+                }
+
+                Object.keys(_api.params ?? []).forEach( (p, i) => {
+                    params[p] = $(`#node-input-param${i+1}`).typedInput("value");
+                });
+
+                this.group = g;
+                this.func = f;
+                this.params = params;
+                this.dirty = true;
+
+            }
+        });
+    });
+</script>
+
+
+
+<script type="text/markdown" data-help-name="systeminformation">
+# @ralphwetzel/node-red-systeminformation
+
+Node-RED interface to [systeminformation](https://systeminformation.io/), the System Information Library for Node.JS
+
+<img src="resources/@ralphwetzel/node-red-systeminformation/node.png"
+    style="min-width: 212px; width: 212px; align: center; border: 1px solid lightgray;"/>
+
+Citing @sebhildebrandt, the creator of [systeminformation](https://github.com/sebhildebrandt/systeminformation#the-systeminformation-project):
+> Started as a small project [...], it now has > 15,000 lines of code, > 600 versions published, up to 8 mio downloads per month, > 220 mio downloads overall. **#1 NPM ranking for backend packages**. 
+
+This node lets you call one of the functions provided by `systeminformation`. The result of each call will be returned as `msg.payload`.
+
+There are two ways to select the function to be called:
+
+### Static configuration via the node property editor
+You may configure the to-be-called function via the nodes property editor.
+
+<img src="resources/@ralphwetzel/node-red-systeminformation/systeminformation.png"
+    style="min-width: 432px; width: 432px; align: center; border: 1px solid lightgray;"/>
+
+Functions are arranged in groups, following the `systeminformation` documentation.
+
+In case a function expects additional parameters, those may be defined as required.
+
+Additionally, the node may be configured to observe the selected function by polling at a given rate. If polling is enabled, you may decide to let the node emit a `msg` only if the function call returned changed values.
+
+### Dynamic mode
+You may trigger the call of a `systeminformation` function as well by sending to the node a `msg` that is configured accordingly:
+
+`topic`: name of the `systeminformation` function to be called.
+
+`payload`: optional `<object>` with parameters to be passed to the function. The keys of the objects properties have to match the names of the parameters as defined by the `systeminformation` documentation, e.g:
+
+```
+{
+    topic: 'versions',
+    payload: {
+        apps: 'npm, php, postgresql'
+    }
+}
+```
+
+> The dynamic mode my be used in addition & parallel to a static configuration, as shown in the provided example.
+
+</script>

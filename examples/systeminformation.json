@@ -1,0 +1,70 @@
+[
+    {
+        "id": "f54a56c07b20a9ee",
+        "type": "tab",
+        "label": "systeminformation",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "c10e2004b162d55f",
+        "type": "systeminformation",
+        "z": "f54a56c07b20a9ee",
+        "name": "",
+        "group": "CPU",
+        "func": "cpuTemperature",
+        "params": {},
+        "poll": true,
+        "interval": "5",
+        "onchangeonly": false,
+        "x": 300,
+        "y": 360,
+        "wires": [
+            [
+                "166a330801aea531"
+            ]
+        ]
+    },
+    {
+        "id": "6d56a9c11d9e1de3",
+        "type": "inject",
+        "z": "f54a56c07b20a9ee",
+        "name": "",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "time",
+        "x": 150,
+        "y": 360,
+        "wires": [
+            [
+                "c10e2004b162d55f"
+            ]
+        ]
+    },
+    {
+        "id": "166a330801aea531",
+        "type": "debug",
+        "z": "f54a56c07b20a9ee",
+        "name": "debug",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 450,
+        "y": 360,
+        "wires": []
+    }
+]
