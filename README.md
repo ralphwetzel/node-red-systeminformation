@@ -39,4 +39,4 @@ You may trigger the call of a `systeminformation` function as well by sending to
 }
 ```
 
-> The dynamic mode my be used in addition & parallel to a static configuration, as shown in the provided example.
+> The dynamic mode may be used in addition & parallel to a static configuration, as shown in the provided example.
