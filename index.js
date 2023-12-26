@@ -44,7 +44,6 @@ module.exports = function(RED) {
                 }
             });
 
-            console.log(error, _params);
             if (error) return;
             
             let run;
@@ -58,8 +57,6 @@ module.exports = function(RED) {
                 run = si[func](..._params);
             }
             run.then( data => {
-
-                console.log(data);
 
                 if (changed_cb && typeof(changed_cb) == "function") {
                     if (false == changed_cb(data)) {
