@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/ralphwetzel/node-red-systeminformation#readme",
   "node-red": {
-    "version": ">=3",
+    "version": ">=2.1.0",
     "nodes": {
       "systeminformation": "index.js"
     }
