@@ -4,8 +4,6 @@ let si = require("systeminformation");
 
 module.exports = function(RED) {
 
-    const routeAuthHandler = RED.auth.needsPermission("@ralphwetzel.systeminformation.write");
-
     function si_node(config) {
 
         RED.nodes.createNode(this,config);
@@ -143,7 +141,7 @@ module.exports = function(RED) {
 
     RED.nodes.registerType("systeminformation", si_node);
 
-    RED.httpAdmin.get(`${apiRoot}/api`, routeAuthHandler, (req, res) => {
+    RED.httpAdmin.get(`${apiRoot}/api`, (req, res) => {
         res.status(200).send(API);
     })
 }
