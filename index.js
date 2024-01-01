@@ -9,6 +9,7 @@ module.exports = function(RED) {
         RED.nodes.createNode(this,config);
         let node = this;
         let poll_timer;
+        node.processing = 0;
 
         let _lookup = {};
         Object.keys(API).forEach( (g) => {
@@ -45,6 +46,9 @@ module.exports = function(RED) {
             if (error) return;
             
             let run;
+            let timer;
+            node.processing += 1;
+
             if (api.sync) {
                 // only 'version' or 'time' are called sync
                 run = new Promise( resolve => {
@@ -53,6 +57,13 @@ module.exports = function(RED) {
             } else {
                 // the rest is async
                 run = si[func](..._params);
+                timer = setTimeout(function() {
+                    node.status({
+                        fill: "blue",
+                        shape: (node.processing) % 2 ? "dot" : "ring",
+                        text: `processing${node.processing > 1 ? `: ${node.processing}` : "..."}`
+                    });
+                }, 250);
             }
             run.then( data => {
 
@@ -75,7 +86,19 @@ module.exports = function(RED) {
 
             }).catch( (err) => {
                 // Hmmm....
-            } );
+            }).finally(() => {
+                clearTimeout(timer);
+                node.processing -= 1;
+                if (node.processing > 0) {
+                    node.status({
+                        fill: "blue",
+                        shape: (node.processing) % 2 ? "dot" : "ring",
+                        text: `processing${node.processing > 1 ? `: ${node.processing}` : "..."}`
+                    });
+                } else {
+                    node.status({});
+                }
+            });
 
         };
 
