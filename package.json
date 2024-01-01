@@ -1,6 +1,6 @@
 {
   "name": "@ralphwetzel/node-red-systeminformation",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Node-RED interface to systeminformation, the System Information Library for Node.JS",
   "main": "index.js",
   "scripts": {
